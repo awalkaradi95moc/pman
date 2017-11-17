@@ -17,15 +17,15 @@
         "creationTimestamp": null,
         "generation": 1,
         "labels": {
-          "app": "pman"
+          "app": "pman-swift-backend"
         },
-        "name": "pman"
+        "name": "pman-swift-backend"
       },
       "spec": {
         "replicas": 1,
         "selector": {
-          "app": "pman",
-          "deploymentconfig": "pman"
+          "app": "pman-swift-backend",
+          "deploymentconfig": "pman-swift-backend"
         },
         "strategy": {
           "activeDeadlineSeconds": 21600,
@@ -44,8 +44,8 @@
           "metadata": {
             "creationTimestamp": null,
             "labels": {
-              "app": "pman",
-              "deploymentconfig": "pman"
+              "app": "pman-swift-backend",
+              "deploymentconfig": "pman-swift-backend"
             }
           },
           "spec": {
@@ -70,9 +70,9 @@
                     "readOnly": true
                   }
                 ],
-                "image": "fnndsc/pman",
+                "image": "adi95docker/pman-swift-backend",
                 "imagePullPolicy": "Always",
-                "name": "pman",
+                "name": "pman-swift-backend",
                 "ports": [
                   {
                     "containerPort": 5010,
@@ -129,9 +129,9 @@
       "metadata": {
         "creationTimestamp": null,
         "labels": {
-          "app": "pman"
+          "app": "pman-swift-backend"
         },
-        "name": "pman"
+        "name": "pman-swift-backend"
       },
       "spec": {
         "ports": [
@@ -143,8 +143,8 @@
           }
         ],
         "selector": {
-          "app": "pman",
-          "deploymentconfig": "pman"
+          "app": "pman-swift-backend",
+          "deploymentconfig": "pman-swift-backend"
         },
         "sessionAffinity": "None",
         "type": "ClusterIP"
@@ -158,7 +158,7 @@
           "openshift.io/host.generated": "true"
         },
         "creationTimestamp": null,
-        "name": "pman"
+        "name": "pman-swift-backend"
       },
       "spec": {
         "port": {
@@ -166,7 +166,7 @@
         },
         "to": {
           "kind": "Service",
-          "name": "pman",
+          "name": "pman-swift-backend",
           "weight": 100
         },
         "wildcardPolicy": "None"

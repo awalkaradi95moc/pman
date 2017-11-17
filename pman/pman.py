@@ -1224,6 +1224,10 @@ class Listener(threading.Thread):
                                 },
                                 remove  = True)
             d_serviceState  = json.loads(byte_str.decode())
+
+            #added
+            self.dp.qprint('**************** d_serviceState %s'%d_serviceState)
+            
             # Now, parse for the logs of the actual container run by the service:
             # NB: This has only really tested/used on swarm!!
             str_contID  = d_serviceState['Status']['ContainerStatus']['ContainerID']
