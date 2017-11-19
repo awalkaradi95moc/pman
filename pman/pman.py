@@ -947,7 +947,9 @@ class Listener(threading.Thread):
         :param kwargs:
         :return: dictionary of components defining job state.
         """
-
+        print('args and kwargs')
+        print(args)
+        print(kwargs)
         self.dp.qprint("In status process...")
 
         # pudb.set_trace()
@@ -967,6 +969,22 @@ class Listener(threading.Thread):
         d_keys      = d_ret.items()
         l_status    = []
         l_logs      = []
+
+        """
+        Finds out whether status is requested for containerized 
+        or openshift job.
+        This eliminates the need to loop over both the types and also eliminates the error
+        caused when keys are same in both types
+        """
+        #str_container_name = 'container'
+        if 'request' in kwargs:
+            d_request = kwargs['request']
+            str_container_name = d_request['meta']['containerName']
+
+        print('in status process ********************')
+        print(d_state)
+        print('print ret')
+        print(d_ret)
 
         #
         # The d_ret keys consist of groups of
@@ -989,22 +1007,21 @@ class Listener(threading.Thread):
             found_container = False
             ## Huh? Why loop over both "container" and "openshift"???
             # for container_name in CONTAINER_NAMES:
-            for container_name in ['container']:
-                container_path = '%s.%s' % (str(i), container_name)
-                if container_path in d_state['d_ret'] and d_state['d_ret'][container_path]['tree']:
-                    kwargs['d_state']   = d_state
-                    kwargs['hitIndex']  = str(i)
+            container_path = '%s.%s' % (str(i), str_container_name)
+            if container_path in d_state['d_ret'] and d_state['d_ret'][container_path]['tree']:
+                kwargs['d_state']   = d_state
+                kwargs['hitIndex']  = str(i)
 
-                    d_containerStatus       = eval("self.t_status_process_%s(*args, **kwargs)" % container_name)
-                    # d_ret {
-                    #     'status':         d_ret['status'],              # bool
-                    #     'logs':           str_logs,                     # logs from app in container
-                    #     'currentState':   d_ret['d_process']['state']   # string of 'finishedSuccessfully' etc
-                    # }
+                d_containerStatus       = eval("self.t_status_process_%s(*args, **kwargs)" % str_container_name)
+                # d_ret {
+                #     'status':         d_ret['status'],              # bool
+                #     'logs':           str_logs,                     # logs from app in container
+                #     'currentState':   d_ret['d_process']['state']   # string of 'finishedSuccessfully' etc
+                # }
 
-                    l_status.append(d_containerStatus['currentState'])
-                    l_logs.append(d_containerStatus['logs'])                    
-                    found_container = True
+                l_status.append(d_containerStatus['currentState'])
+                l_logs.append(d_containerStatus['logs'])                    
+                found_container = True
 
             # The case for non-containerized jobs
             if not found_container:
@@ -1981,6 +1998,8 @@ class Listener(threading.Thread):
 
         for container_name in CONTAINER_NAMES:
             if container_name in d_meta.keys():
+                print('containername %s'%container_name)
+                print(d_meta.keys())
                 # If the `container_name` json paragraph exists, then route processing to
                 # a suffixed '_<container_name>' method.
                 str_methodSuffix    = '_%s' % container_name
@@ -2006,6 +2025,8 @@ class Listener(threading.Thread):
         d_ret['meta']   = d_meta
 
         b_threaded      = False
+        print('**********d meta keys')
+        print(d_meta.keys)
         if 'threaded' in d_meta.keys():
             b_threaded  = d_meta['threaded']
 
@@ -2017,6 +2038,8 @@ class Listener(threading.Thread):
             # str_method  = 't_%s_process' % payload_verb
             try:
                 pf_method  = getattr(self, str_method)
+                print('pf_method for str_method %s'%str_method)
+                print(pf_method)
             except AttributeError:
                 raise NotImplementedError("Class `{}` does not implement `{}`".format(pman.__class__.__name__, str_method))
 
