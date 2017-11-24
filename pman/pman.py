@@ -947,9 +947,7 @@ class Listener(threading.Thread):
         :param kwargs:
         :return: dictionary of components defining job state.
         """
-        print('args and kwargs')
-        print(args)
-        print(kwargs)
+
         self.dp.qprint("In status process...")
 
         # pudb.set_trace()
@@ -969,22 +967,6 @@ class Listener(threading.Thread):
         d_keys      = d_ret.items()
         l_status    = []
         l_logs      = []
-
-        """
-        Finds out whether status is requested for containerized 
-        or openshift job.
-        This eliminates the need to loop over both the types and also eliminates the error
-        caused when keys are same in both types
-        """
-        #str_container_name = 'container'
-        if 'request' in kwargs:
-            d_request = kwargs['request']
-            str_container_name = d_request['meta']['containerName']
-
-        print('in status process ********************')
-        print(d_state)
-        print('print ret')
-        print(d_ret)
 
         #
         # The d_ret keys consist of groups of
@@ -1006,22 +988,26 @@ class Listener(threading.Thread):
             # Was this a containerized job?
             found_container = False
             ## Huh? Why loop over both "container" and "openshift"???
-            # for container_name in CONTAINER_NAMES:
-            container_path = '%s.%s' % (str(i), str_container_name)
-            if container_path in d_state['d_ret'] and d_state['d_ret'][container_path]['tree']:
-                kwargs['d_state']   = d_state
-                kwargs['hitIndex']  = str(i)
+            for container_name in CONTAINER_NAMES:
+            #for container_name in ['container']:
+                container_path = '%s.%s' % (str(i), container_name)
+                if container_path in d_state['d_ret'] and d_state['d_ret'][container_path]['tree']:
+                    kwargs['d_state']   = d_state
+                    kwargs['hitIndex']  = str(i)
 
-                d_containerStatus       = eval("self.t_status_process_%s(*args, **kwargs)" % str_container_name)
-                # d_ret {
-                #     'status':         d_ret['status'],              # bool
-                #     'logs':           str_logs,                     # logs from app in container
-                #     'currentState':   d_ret['d_process']['state']   # string of 'finishedSuccessfully' etc
-                # }
+                    d_containerStatus       = eval("self.t_status_process_%s(*args, **kwargs)" % container_name)
+                    # d_ret {
+                    #     'status':         d_ret['status'],              # bool
+                    #     'logs':           str_logs,                     # logs from app in container
+                    #     'currentState':   d_ret['d_process']['state']   # string of 'finishedSuccessfully' etc
+                    # }
 
-                l_status.append(d_containerStatus['currentState'])
-                l_logs.append(d_containerStatus['logs'])                    
-                found_container = True
+                    print('**********ContainerStatus')
+                    print(d_containerStatus)
+
+                    l_status.append(d_containerStatus['currentState'])
+                    l_logs.append(d_containerStatus['logs'])                    
+                    found_container = True
 
             # The case for non-containerized jobs
             if not found_container:
@@ -1244,6 +1230,7 @@ class Listener(threading.Thread):
 
             #added
             self.dp.qprint('**************** d_serviceState %s'%d_serviceState)
+            self.dp.qprint('**************** d_state %s'%d_state)
             
             # Now, parse for the logs of the actual container run by the service:
             # NB: This has only really tested/used on swarm!!
@@ -1285,8 +1272,7 @@ class Listener(threading.Thread):
         o   If the job is completed, then shutdown the container cluster
             service.
         """
-        return False
-
+        
         d_state         = None
         str_jobRoot     = ''
         str_hitIndex    = "0"
@@ -1307,6 +1293,7 @@ class Listener(threading.Thread):
             d_json          = self._ptree.cat('/%s/openshift/state')
         else:
             d_json = self.get_openshift_manager().state(jid)
+            print('********d_json %s'%d_json) 
 
         return self.t_status_process_openshift_stateObject( hitIndex        = str_hitIndex,
                                                             jobState        = d_state,
@@ -1353,19 +1340,28 @@ class Listener(threading.Thread):
             if k == 'jobState':         d_jobState      = v
             if k == 'serviceState':     d_serviceState  = v
             if k == 'hitIndex':         str_hitIndex    = v
+
+        #print('jobState %s'%jobState)
+        #print('serviceState %s'%serviceState)
+        #print('hitIndex %s'%hitIndex)
         if d_serviceState:
-            str_ret, str_jobRoot, b_removeJob = self.t_status_process_state(
-                                                            d_serviceState, 
-                                                            d_jobState, 
-                                                            str_hitIndex, 
-                                                            'openshift'
+            print('inside d_serviceState')
+            #str_ret, str_jobRoot, b_removeJob 
+            d_ret                                       = self.t_status_process_state(
+                                                            serviceState = d_serviceState, 
+                                                            jobState = d_jobState, 
+                                                            hitIndex = str_hitIndex, 
+                                                            containerType = 'openshift'
                                                         )
+            b_removeJob      = d_ret['removeJob']
+            str_currentState = d_ret['currentState'] 
             if b_removeJob:
+                print('time to remove the job')
                 self._ptree.cd('/%s' % str_jobRoot)
                 jid = self._ptree.cat('jid')
                 if job_exists(jid):
                     job_shutDown(jid)
-        return str_ret
+        return d_ret
 
     def get_openshift_manager(self):
         if not self.openshiftmgr:
@@ -1417,7 +1413,9 @@ class Listener(threading.Thread):
 
         for k,v in kwargs.items():
             if k == 'jobState':         d_jobState          = v
-            if k == 'serviceState':     d_serviceState      = v
+            if k == 'serviceState':     
+                d_serviceState      = v
+                print('d_serviceState %s'%d_serviceState)
             if k == 'hitIndex':         str_hitIndex        = v
             if k == 'logs':             str_logs            = v
             if k == 'containerType':    str_containerType   = v
@@ -1998,8 +1996,6 @@ class Listener(threading.Thread):
 
         for container_name in CONTAINER_NAMES:
             if container_name in d_meta.keys():
-                print('containername %s'%container_name)
-                print(d_meta.keys())
                 # If the `container_name` json paragraph exists, then route processing to
                 # a suffixed '_<container_name>' method.
                 str_methodSuffix    = '_%s' % container_name
@@ -2025,8 +2021,6 @@ class Listener(threading.Thread):
         d_ret['meta']   = d_meta
 
         b_threaded      = False
-        print('**********d meta keys')
-        print(d_meta.keys)
         if 'threaded' in d_meta.keys():
             b_threaded  = d_meta['threaded']
 
@@ -2038,8 +2032,6 @@ class Listener(threading.Thread):
             # str_method  = 't_%s_process' % payload_verb
             try:
                 pf_method  = getattr(self, str_method)
-                print('pf_method for str_method %s'%str_method)
-                print(pf_method)
             except AttributeError:
                 raise NotImplementedError("Class `{}` does not implement `{}`".format(pman.__class__.__name__, str_method))
 
