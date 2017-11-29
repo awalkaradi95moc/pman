@@ -988,6 +988,8 @@ class Listener(threading.Thread):
             # Was this a containerized job?
             found_container = False
             ## Huh? Why loop over both "container" and "openshift"???
+            
+            # Created an issue to fix this looping over both containers
             for container_name in CONTAINER_NAMES:
             #for container_name in ['container']:
                 container_path = '%s.%s' % (str(i), container_name)
@@ -1005,9 +1007,16 @@ class Listener(threading.Thread):
                     print('**********ContainerStatus')
                     print(d_containerStatus)
 
-                    l_status.append(d_containerStatus['currentState'])
-                    l_logs.append(d_containerStatus['logs'])                    
+                    # Temporary fix for working with openshift
+                    try:
+                        l_status.append(d_containerStatus['currentState'])
+                        l_logs.append(d_containerStatus['logs'])
+                    except KeyError:
+                        l_status.append('')
+                        l_logs.append('')                    
+                    
                     found_container = True
+
 
             # The case for non-containerized jobs
             if not found_container:
@@ -1425,7 +1434,13 @@ class Listener(threading.Thread):
         str_jobRoot = d_jobState['d_ret']['%s.%s' % (hitIndex, str_containerType)]['jobRoot']
         str_state   = d_serviceState['Status']['State']
         str_message = d_serviceState['Status']['Message']
-        str_contID  = d_serviceState['Status']['ContainerStatus']['ContainerID']
+        
+        # temporary change to handle containerid for openshift
+        try:        
+            str_contID  = d_serviceState['Status']['ContainerStatus']['ContainerID']
+        except:
+            str_contID  = ''
+        
         if str_state == 'running'   and str_message == 'started':
             str_currentState    = 'started'
             debug_print(str_jobRoot, d_serviceState, str_currentState, str_logs)
