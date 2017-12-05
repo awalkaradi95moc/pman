@@ -10,7 +10,7 @@ from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from swiftclient import client as swift_client
 from io import BytesIO
-from swift_handler import swiftHandler
+from swift_handler import SwiftHandler
 
 
 class SwiftStore():

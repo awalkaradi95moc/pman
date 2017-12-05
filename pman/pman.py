@@ -1301,6 +1301,8 @@ class Listener(threading.Thread):
             # The job has actually completed and its state recorded in the data tree
             d_json          = self._ptree.cat('/%s/openshift/state')
         else:
+            # TODO
+            # Throw the exception from openshift client directly for easy debugging
             d_json = self.get_openshift_manager().state(jid)
             print('********d_json %s'%d_json) 
 
