@@ -24,16 +24,12 @@ class SwiftStore():
         Deletes the object after returning if specified
         """
 
-        try:
-            containerName = key
-            key = os.path.join('input','data')
-            swiftDataObject = self.swiftConnection.get_object(containerName, key)
-            if b_delete:
-                self.swiftConnection.delete_object(containerName, key)
-                self.qrint('Deleted object with key %s' %key)
-
-        except Exception as exp:
-            print(exp)
+        containerName = key
+        key = os.path.join('input','data')
+        swiftDataObject = self.swiftConnection.get_object(containerName, key)
+        if b_delete:
+            self.swiftConnection.delete_object(containerName, key)
+            self.qrint('Deleted object with key %s' %key)
 
         return swiftDataObject
 
@@ -46,12 +42,9 @@ class SwiftStore():
         for k,v in kwargs.items():
             if k== 'path': key= v
 
-        try:
-            swiftHandler = SwiftHandler()
-            self.swiftConnection = swiftHandler._initiateSwiftConnection()
-            dataObject = self._getObject(key, False)
-        except Exception as err:
-            print(err)
+        swiftHandler = SwiftHandler()
+        self.swiftConnection = swiftHandler._initiateSwiftConnection()
+        dataObject = self._getObject(key, False)
             
         objectInformation= dataObject[0]
         objectValue= dataObject[1]

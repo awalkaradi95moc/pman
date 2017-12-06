@@ -21,12 +21,8 @@ class SwiftStore():
         Creates an object with the given key and value and puts the object in the specified container
         """
 
-        try:
-            self.swiftConnection.put_object(containerName, key , contents=value, content_type='text/plain')
-            print('Object added with key %s' %key)
-
-        except Exception as exp:
-            print('Exception = %s' %exp)
+        self.swiftConnection.put_object(containerName, key , contents=value, content_type='text/plain')
+        print('Object added with key %s' %key)
 
 
     def zipdir(self, path, ziph, **kwargs):
@@ -67,25 +63,19 @@ class SwiftStore():
     
         self.zipdir(fileName, ziphandler, arcroot = fileName)
 
-        try:
-            with open('/share/ziparchive.zip','rb') as f:
-                zippedFileContent = f.read()
-        finally:
-            os.remove('/share/ziparchive.zip')
+        with open('/share/ziparchive.zip','rb') as f:
+            zippedFileContent = f.read()
+        os.remove('/share/ziparchive.zip')
 
         swiftHandler = SwiftHandler()
         self.swiftConnection = swiftHandler._initiateSwiftConnection()            
        
-        try:
-            containerName = key
-            key = os.path.join('output','data') 
-            self._putObject(containerName, key, zippedFileContent)
-        except Exception as err:
-            print(err)
+        containerName = key
+        key = os.path.join('output','data') 
+        self._putObject(containerName, key, zippedFileContent)
         
-        finally:    
-            #Delete temporary empty directory created by Swift
-            swiftHandler._deleteEmptyDirectory(key)
+        #Delete temporary empty directory created by Swift
+        swiftHandler._deleteEmptyDirectory(key)
 
 
 if __name__ == "__main__":
