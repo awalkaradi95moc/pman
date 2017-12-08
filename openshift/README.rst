@@ -1,5 +1,5 @@
 ##############
-Example Kube Config Setup to run locally:
+Example to run locally:
 ##############
 
 Assuming oc cluster up has been run.
@@ -16,7 +16,7 @@ Assuming oc cluster up has been run.
     # Changes for using hostPath in container. These are not needed, if you want to use swift as backend storage.
     mkdir /tmp/share           # Create a directory that could be mounted in container. This is mounted as /shareDir in container.
     chcon -R -t svirt_sandbox_file_t /tmp/share/ # Change selinux label so that containers can read/write from/to directory.
-    oc edit scc restricted     # Update allowHostDirVolumePlugin to true and runAsUser: type: RunAsAny.
+    sudo oc edit scc restricted     # Update allowHostDirVolumePlugin to true and runAsUser: type: RunAsAny.
     A restricted SCC should look like this: https://gist.github.com/ravisantoshgudimetla/91748a20766672d2f26b93b3c42517b4
     ############################   
 
@@ -30,9 +30,9 @@ Assuming oc cluster up has been run.
     oc new-app openshift/pman-openshift-template-without-swift.json
 
 ##############
-Temoporary Dependancy Errors
+Temporary Dependency Errors
 ##############
-There is a dependancy error with the current versoin of the skopeo-containers library that is preventing pods from running in local Openshift instances. If you are getting errors resembling:
+There is a dependency error with the current version of the skopeo-containers library that is preventing pods from running in local OpenShift instances. If you are getting errors resembling:
 
 ::
 
@@ -44,16 +44,6 @@ The current workaround is to move or delete the /usr/share/rhel/secrets director
 .. code-block:: bash 
 
     mv /usr/share/rhel/secrets <desired destination>
-
-
-#############
-Script
-#############
-A script named pmanSetup.sh can be used to run most of the above commands, and will leave you off in vim editing the scc restricted file. You will have to procede manually from then on, but it should cut a lot of the tedious work out. Its a work in progress. To run the script, just use the command: 
-
-.. code-block:: bash 
-
-    bash pmanSetup.sh
 
 ##############
 Swift Object Store
