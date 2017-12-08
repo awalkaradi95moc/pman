@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Takes the output data in the share directory and pushes it into Swift
 SWIFT_KEY enviornment variable to be passed by the template
@@ -55,17 +57,18 @@ class SwiftStore():
         Creates an object of the file and stores it into the container as key-value object 
         """
 
-        key = 'someDefault'
+        key = ''
         for k,v in kwargs.items():
             if k == 'path': 	      key         = v
-        fileName      = '/share/'
-        ziphandler    = zipfile.ZipFile('/share/ziparchive.zip', 'w', zipfile.ZIP_DEFLATED)
+
+        fileName      = '/tmp/share/'
+        ziphandler    = zipfile.ZipFile('/tmp/share/ziparchive.zip', 'w', zipfile.ZIP_DEFLATED)
     
         self.zipdir(fileName, ziphandler, arcroot = fileName)
 
-        with open('/share/ziparchive.zip','rb') as f:
+        with open('/tmp/share/ziparchive.zip','rb') as f:
             zippedFileContent = f.read()
-        os.remove('/share/ziparchive.zip')
+        os.remove('/tmp/share/ziparchive.zip')
 
         swiftHandler = SwiftHandler()
         self.swiftConnection = swiftHandler._initiateSwiftConnection()            
@@ -81,4 +84,4 @@ class SwiftStore():
 if __name__ == "__main__":
 
     obj = SwiftStore()
-    obj.storeData(path= os.environ.get('SWIFT_KEY'))
+    obj.storeData(path = os.environ.get('SWIFT_KEY'))

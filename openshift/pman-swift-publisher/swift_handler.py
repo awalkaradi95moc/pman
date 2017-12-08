@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Helper class for get_data and put_data
 Establishes swift connection and returns a connection object

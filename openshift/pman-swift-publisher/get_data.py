@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Pulls the data from Swift and places it into the empty directory
 SWIFT_KEY enviornment variable to be passed by the template
@@ -42,6 +44,7 @@ class SwiftStore():
         for k,v in kwargs.items():
             if k== 'path': key= v
 
+        print('swift key = %s'%key)
         swiftHandler = SwiftHandler()
         self.swiftConnection = swiftHandler._initiateSwiftConnection()
         dataObject = self._getObject(key, False)
@@ -53,7 +56,7 @@ class SwiftStore():
         fileBytes  = BytesIO(fileContent)
 
         zipfileObj = zipfile.ZipFile(fileBytes, 'r', compression = zipfile.ZIP_DEFLATED)
-        zipfileObj.extractall('/share')
+        zipfileObj.extractall('/tmp/share')
         
 
 if __name__ == "__main__":
